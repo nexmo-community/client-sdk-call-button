@@ -4,7 +4,13 @@ import NexmoClient
 
 public class NXMCallButton: UIButton {
     
-    @IBInspectable public var nexmoToken: String?
+    @IBInspectable public var nexmoToken: String? {
+        didSet {
+            if NXMClient.shared.connectionStatus != .connected {
+                NXMClient.shared.login(withAuthToken: nexmoToken!)
+            }
+        }
+    }
     @IBInspectable public var callee: String?
     public var callCompletionHandler: ((Error?, NXMCall?) -> Void)?
     
@@ -13,24 +19,14 @@ public class NXMCallButton: UIButton {
     private var isCalling = false
     private var userWantsToCall = false
     
-    private func buttonInit() {
-        self.addTarget(self, action: #selector(callButtonPressed(_:)), for: .touchUpInside)
-        if NXMClient.shared.connectionStatus != .connected {
-            guard let token = nexmoToken else {
-                return
-            }
-            NXMClient.shared.login(withAuthToken: token)
-        }
-    }
-    
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
-        buttonInit()
+        self.addTarget(self, action: #selector(callButtonPressed(_:)), for: .touchUpInside)
     }
     
     public override init(frame: CGRect) {
         super.init(frame: frame)
-        buttonInit()
+        self.addTarget(self, action: #selector(callButtonPressed(_:)), for: .touchUpInside)
     }
     
     
@@ -111,6 +107,4 @@ extension NXMCallButton {
         }
     }
 }
-
-
 
